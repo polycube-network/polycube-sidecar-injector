@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: polycube-sidecar-configmap
+data:
+  sidecarconfig.yaml: |
+    sidecars:
+      - name: haystack-agent
+        sidecar:
+          containers:
+            - name: haystack-agent
+              image: expediadotcom/haystack-agent
+              imagePullPolicy: IfNotPresent
+              args:
+                - --config-provider
+                - file
+                - --file-path
+                - /app/haystack/agent.conf
+              ports:
+                - containerPort: 35000
