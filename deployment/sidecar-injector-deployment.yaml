@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: polycube-sidecar-injector
+  labels:
+    app: polycube-sidecar-injector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: polycube-sidecar-injector
+  template:
+    metadata:
+      labels:
+        app: polycube-sidecar-injector
+    spec:
+      containers:
+        - name: polycube-sidecar-injector
+          image: asimpleidea/polycube-sidecar-injector:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - -port=8443
+            - -certFile=/opt/polycube-sidecar-injector/certs/cert.crt
+            - -keyFile=/opt/polycube-sidecar-injector/certs/key.pem
+            - -sideCar=/opt/polycube-sidecar-injector/sidecarconfig.yaml
+            - 2>&1
+          volumeMounts:
+            - name: polycube-sidecar-injector-certs
+              mountPath: /opt/polycube-sidecar-injector/certs
+              readOnly: true
+            - name: polycube-sidecar-configmap
+              mountPath: /opt/polycube-sidecar-injector
+      volumes:
+        - name: polycube-sidecar-injector-certs
+          secret:
+            secretName: polycube-sidecar-injector-certs
+        - name: polycube-sidecar-configmap
+          configMap:
+            name: polycube-sidecar-configmap
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: polycube-sidecar-injector
+  labels:
+    app: polycube-sidecar-injector
+spec:
+  ports:
+    - port: 443
+      targetPort: 8443
+  selector:
+    app: polycube-sidecar-injector
