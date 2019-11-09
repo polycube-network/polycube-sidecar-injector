@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: polycube-sidecar-configmap
+data:
+  sidecarconfig.yaml: |
+    polycubeImage: polycubenetwork/polycube:latest
