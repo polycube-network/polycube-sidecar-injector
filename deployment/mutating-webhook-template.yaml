@@ -1,0 +1,22 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: polycube-sidecar-injector-webhook
+  labels:
+    app: polycube-sidecar-injector
+webhooks:
+  - name: sidecar.polycube.network
+    clientConfig:
+      service:
+        name: polycube-sidecar-injector
+        namespace: default
+        path: "/mutate"
+      caBundle: ${CABUNDLE}
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+    namespaceSelector:
+      matchLabels:
+        polycube.network/sidecar: enabled
