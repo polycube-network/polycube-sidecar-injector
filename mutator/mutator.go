@@ -53,8 +53,27 @@ func serve(w http.ResponseWriter, r *http.Request) {
 			Allowed: true,
 		}
 
-		writeRespone(w, adRev)
+		writeResponse(w, adRev)
 	}
+
+	//-----------------------------------------
+	// Insert polycubed
+	//-----------------------------------------
+
+	injectPolycube()
+
+	//-----------------------------------------
+	// Write the response
+	//-----------------------------------------
+
+	adRevResp, err := buildResponse()
+	if err != nil {
+		writeErrorResponse(w, err)
+		return
+	}
+
+	log.Infof("Polycubed has been successfully injected as a sidecar in pod %s", pod.ObjectMeta.GenerateName)
+	writeResponse(w, adRevResp)
 }
 
 // requiresMutation checks if the mutation is actually needed
@@ -77,22 +96,49 @@ func requiresMutation(pod *corev1.Pod, adRev *v1beta1.AdmissionReview) bool {
 	}
 
 	// Has the appropriate label?
-	val, exists := om.Annotations["polycube.network/sidecar"]
+	val, exists := om.Annotations[types.SidecarAnnotationKey]
 	if !exists {
-		log.Infof("Pod %s does not have the annotation polycube.network/sidecar, so it will be skipped", om.GenerateName)
+		log.Infof("Pod %s does not have the annotation %s, so it will be skipped", om.GenerateName, types.SidecarAnnotationKey)
 		return false
 	}
-	if val != "enabled" {
-		log.Infof("Pod %s has annotation polycube.network/sidecar but the value is not recognized (%s), so it will be skipped", om.GenerateName, val)
-		return false
+	if val != types.SidecarAnnotationVal {
+		log.Infof("Pod %s has annotation %s but the value is not recognized (%s), so it will be skipped", om.GenerateName, types.SidecarAnnotationKey, val)
 	}
 
 	// Already done?
-	val, exists = om.Annotations["polycube.network/sidecar-status"]
-	if exists && val == "injected" {
-		log.Infof("Pod %s already has annotation polycube.network/sidecar-status=injected, so it will be skipped", om.GenerateName)
+	val, exists = om.Annotations[types.SidecarStatusKey]
+	if exists && val == types.SidecarStatusInjected {
+		log.Infof("Pod %s already has aready been injected, so it will be skipped", om.GenerateName)
 		return false
 	}
 
 	return true
+}
+
+// injectPolycube will inject the polycube sidecar in the pod
+func injectPolycube() {
+	// Inject the annotation
+	patchOps = append(patchOps, types.PatchOperation{
+		Op:   "add",
+		Path: "/metadata/annotations",
+		Value: map[string]string{
+			types.SidecarStatusKey: types.SidecarStatusInjected,
+		},
+	})
+
+	// Inject the container
+	patchOps = append(patchOps, types.PatchOperation{
+		Op:    "add",
+		Path:  "/spec/containers/-",
+		Value: types.PolycubeContainer,
+	})
+
+	// Inject the volumes
+	for _, vol := range types.PolycubeVolumes {
+		patchOps = append(patchOps, types.PatchOperation{
+			Op:    "add",
+			Path:  "/spec/volumes/-",
+			Value: vol,
+		})
+	}
 }

@@ -87,11 +87,11 @@ func writeErrorResponse(w http.ResponseWriter, err error) {
 		},
 	}
 
-	writeRespone(w, adRev)
+	writeResponse(w, adRev)
 }
 
 // writeResponse writes the http response
-func writeRespone(w http.ResponseWriter, adRev *v1beta1.AdmissionReview) {
+func writeResponse(w http.ResponseWriter, adRev *v1beta1.AdmissionReview) {
 	// First, encode it to json
 	resp, err := json.Marshal(adRev)
 	if err != nil {
@@ -104,4 +104,26 @@ func writeRespone(w http.ResponseWriter, adRev *v1beta1.AdmissionReview) {
 		log.Errorf("An error occurred while writing response: %v", err)
 		http.Error(w, fmt.Sprintf("An error occurred while writing response: %v", err), http.StatusInternalServerError)
 	}
+}
+
+func buildResponse() (*v1beta1.AdmissionReview, error) {
+	// Marshal the patch operations
+	patchBytes, err := json.Marshal(patchOps)
+	if err != nil {
+		return nil, fmt.Errorf("An error occurred while trying to marshal the patch operations: %s", err)
+	}
+
+	pt := v1beta1.PatchTypeJSONPatch
+	admissionReviewResp := v1beta1.AdmissionReview{}
+	admissionReviewResp.Response = &v1beta1.AdmissionResponse{
+		//UID:       reqUID,
+		Allowed:   true,
+		Patch:     patchBytes,
+		PatchType: &pt,
+	}
+
+	// NOTE: the documentation says that Patch should be base64-ed, but I found
+	// it to be working like this anyway. So, for now, I am leaving it
+	// like this.
+	return &admissionReviewResp, nil
 }
