@@ -109,18 +109,12 @@ func writeResponse(w http.ResponseWriter, adRev *v1beta1.AdmissionReview) {
 // buildResponse builds the complete admission review (i.e. with the response)
 // to be sent as a response
 func buildResponse() (*v1beta1.AdmissionReview, error) {
-	// Marshal the patch operations
-	patchBytes, err := json.Marshal(patchOps)
-	if err != nil {
-		return nil, fmt.Errorf("An error occurred while trying to marshal the patch operations: %s", err)
-	}
-
 	pt := v1beta1.PatchTypeJSONPatch
 	admissionReviewResp := v1beta1.AdmissionReview{}
 	admissionReviewResp.Response = &v1beta1.AdmissionResponse{
 		//UID:       reqUID,
 		Allowed:   true,
-		Patch:     patchBytes,
+		Patch:     marshalledPatchOps,
 		PatchType: &pt,
 	}
 
@@ -128,4 +122,14 @@ func buildResponse() (*v1beta1.AdmissionReview, error) {
 	// it to be working like this anyway. So, for now, I am leaving it
 	// like this.
 	return &admissionReviewResp, nil
+}
+
+func MarshalPatchOperations() {
+	// Marshal the patch operations
+	patchBytes, err := json.Marshal(patchOps)
+	if err != nil {
+		log.Fatalf("An error occurred while trygin to marshal the sidecars: %v", err)
+	}
+
+	marshalledPatchOps = patchBytes
 }

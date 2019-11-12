@@ -18,8 +18,14 @@ func main() {
 	//-----------------------------------------
 
 	servSettings, sidecarSettings := utils.LoadSettings()
+
+	//-----------------------------------------
+	// Set polycube
+	//-----------------------------------------
+
 	types.SetPolycube(sidecarSettings)
 	mutator.SetPolycubePatch()
+	mutator.MarshalPatchOperations()
 
 	//-----------------------------------------
 	// Start the server

@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	deserializer runtime.Decoder
-	defaulter    runtime.ObjectDefaulter
-	patchOps     []types.PatchOperation
+	deserializer       runtime.Decoder
+	defaulter          runtime.ObjectDefaulter
+	patchOps           []types.PatchOperation
+	marshalledPatchOps []byte
 )
 
 func init() {
