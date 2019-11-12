@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"polycube.network/polycube-sidecar-injector/types"
-
 	log "github.com/sirupsen/logrus"
+	"polycube.network/polycube-sidecar-injector/types"
 )
 
 var (

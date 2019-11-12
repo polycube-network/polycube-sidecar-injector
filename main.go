@@ -5,6 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"polycube.network/polycube-sidecar-injector/types"
+
 	log "github.com/sirupsen/logrus"
 	"polycube.network/polycube-sidecar-injector/mutator"
 	"polycube.network/polycube-sidecar-injector/utils"
@@ -15,13 +17,15 @@ func main() {
 	// Load settings
 	//-----------------------------------------
 
-	settings := utils.LoadSettings()
+	servSettings, sidecarSettings := utils.LoadSettings()
+	types.SetPolycube(sidecarSettings)
+	mutator.SetPolycubePatch()
 
 	//-----------------------------------------
 	// Start the server
 	//-----------------------------------------
 
-	mutator.StartServer(settings)
+	mutator.StartServer(servSettings)
 
 	//-----------------------------------------
 	// Listen on OS shutdown signal

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
-	v1beta1 "k8s.io/api/admission/v1beta1"
+	"k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -55,12 +55,6 @@ func serve(w http.ResponseWriter, r *http.Request) {
 
 		writeResponse(w, adRev)
 	}
-
-	//-----------------------------------------
-	// Insert polycubed
-	//-----------------------------------------
-
-	injectPolycube()
 
 	//-----------------------------------------
 	// Write the response
@@ -115,8 +109,10 @@ func requiresMutation(pod *corev1.Pod, adRev *v1beta1.AdmissionReview) bool {
 	return true
 }
 
-// injectPolycube will inject the polycube sidecar in the pod
-func injectPolycube() {
+// SetPolycubePatch creates the JSON patch about polycube and store it in
+// memory so we don't have to do this everytime.
+// So, this is meant to be called just once.
+func SetPolycubePatch() {
 	// Inject the annotation
 	patchOps = append(patchOps, types.PatchOperation{
 		Op:   "add",

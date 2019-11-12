@@ -106,6 +106,8 @@ func writeResponse(w http.ResponseWriter, adRev *v1beta1.AdmissionReview) {
 	}
 }
 
+// buildResponse builds the complete admission review (i.e. with the response)
+// to be sent as a response
 func buildResponse() (*v1beta1.AdmissionReview, error) {
 	// Marshal the patch operations
 	patchBytes, err := json.Marshal(patchOps)
